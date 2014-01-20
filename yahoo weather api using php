@@ -1,0 +1,231 @@
+<?php
+
+$value = trim($_GET["mySelect"]);
+//echo "value ..".$value;
+
+if (strlen($_GET['code']) === 0) {
+    //alert box
+    echo "<alert('Please enter a valid zip code')>";
+}
+
+if ($value === 'city') {
+    /* @var $_GET type */
+    $city = $_GET['code'];
+    $deg = $_GET['testdegree'];
+    $city = urlencode($city);
+
+    $d = "http://where.yahooapis.com/v1/places\$and(.q('" . $city . "'),.type(7));start=0;count=5?appid=1.o7nELV34GbDDpfA4AuP6mkJeFZJz0S43rXhMo59oPLZTbQqud9uXGKyR6J8Rqd";
+    $content = @simplexml_load_file($d);
+    // print_r($content);
+
+    if ($content === false) {
+        echo "<p>Zero Result Found.</p>";
+    } else {
+        $i = 0;
+        $arraywoeid = array();
+        foreach ($content->place as $child) {
+            $arraywoeid[$i] = $child->woeid;
+            $i++;
+        }
+
+        $count = count($content);
+        if ($count === 0) {
+
+            echo "<p>Zero Result Found.</p>";
+        } else {
+            $city = $_GET['code'];
+            $print = "<br/>$count result(s) for $city ";
+            $print.='<div><table border="1"  width="100%"><th>Weather</th><th> Temperature</th><th> City</th><th> Region</th><th> Country</th><th> Latitude</th><th> Longitude</th><th> Links to Details</th>';
+            $print.= @getWeather($arraywoeid[0], $deg);
+           // echo $print;
+//                    foreach($arraywoeid as $x=>$x_woeid)
+//                    {
+//                   //  echo "Key=" . $x . ", Value=" . $x_woeid;
+//                    $print.=  @getWeather($x_woeid,$deg);
+//                                           
+//                    }
+            // <count> result(s) <City|Zip Code> <value of location text field>].
+        }
+    }
+} else {
+    //for ZIP code
+    if (is_numeric($_GET['code'])) {
+        if (strlen($_GET['code']) === 5) {
+           // echo "<alert('Please enter a valid zip code')>";
+        }
+    }
+    $zip = $_GET['code'];
+    $deg = $_GET['testdegree'];
+    $a = "http://where.yahooapis.com/v1/concordance/usps/";
+    $b = "?appid=1.o7nELV34GbDDpfA4AuP6mkJeFZJz0S43rXhMo59oPLZTbQqud9uXGKyR6J8Rqd";
+    $c = $a . $zip . $b;
+   // echo "test----input " . $c;
+    $content = @file_get_contents($c);
+    //echo "content ".$content;
+    if ($content === false) {
+      
+    } {
+      
+        $xml1 = new SimpleXMLElement($content);
+      
+        $woeid1 = ($xml1->woeid);
+      
+        $print = ' ';
+        $count = "1";
+       $print.=@getWeather($woeid1, $deg);
+     
+    }
+}
+
+function getWeather($woeid, $tempunit) {
+    $url = "http://weather.yahooapis.com/forecastrss?w=";
+    $url1 = "&u=";
+    $newoeid = trim($woeid);
+    //echo " ".$newoeid." ";
+    $url2 = trim($url . $newoeid . $url1 . $tempunit);
+   // echo "url 2nd time send--->11" . $url2."</br>";
+    $doc = @file_get_contents($url2);
+    if ($doc === false) {
+        echo "<p>Zero Result found</p>";
+    } else {
+        $sxml1 = new SimpleXMLElement($doc);
+        $print = '';
+        //$print.= @output($sxml);
+        $print.=@output($sxml1,$url2);
+        // output($sxml);
+        return $print;
+    }
+}
+
+
+
+function output($sxml,$url2) {
+
+    echo "inside output_new file";
+    $weather_panel = "NA";
+
+    $temperature = "NA";
+
+    $city = "NA";
+
+    $region = "NA";
+
+    $country = "NA";
+
+    $geolat = "NA";
+
+    $link = "NA";
+
+    $namespaces = $sxml->getNameSpaces(true);
+    $yweather = $sxml->channel->item->children($namespaces['yweather']);
+    $location = $sxml->channel->children($namespaces['yweather'])->location;
+
+    $text = $sxml->channel->children($namespaces['yweather'])->text;
+    //<sup>o</sup>
+    $temperature = $yweather->condition->attributes()->text . " " . $yweather->condition->attributes()->temp . " " . $sxml->channel->children($namespaces['yweather'])->units->attributes()->temperature;
+    $city = $location->attributes()->city;
+    $region = $location->attributes()->region;
+    $country = $location->attributes()->country;
+    $forcast = $yweather->forecast->attributes()->day . " " . $yweather->forecast[0]->attributes()->date . " " . $yweather->forecast[0]->attributes()->low . " " . $yweather->forecast[0]->attributes()->high . " " . $yweather->forecast[0]->attributes()->text . " " . $yweather->forecast[0]->attributes()->code;
+    $forcast1 = $yweather->forecast->attributes()->day . " " . $yweather->forecast[1]->attributes()->date . " " . $yweather->forecast[1]->attributes()->low . " " . $yweather->forecast[1]->attributes()->high . " " . $yweather->forecast[1]->attributes()->text . " " . $yweather->forecast[1]->attributes()->code;
+    $forcast2 = $yweather->forecast->attributes()->day . " " . $yweather->forecast[2]->attributes()->date . " " . $yweather->forecast[2]->attributes()->low . " " . $yweather->forecast[2]->attributes()->high . " " . $yweather->forecast[2]->attributes()->text . " " . $yweather->forecast[2]->attributes()->code;
+    $forcast3 = $yweather->forecast->attributes()->day . " " . $yweather->forecast[3]->attributes()->date . " " . $yweather->forecast[3]->attributes()->low . " " . $yweather->forecast[3]->attributes()->high . " " . $yweather->forecast[3]->attributes()->text . " " . $yweather->forecast[3]->attributes()->code;
+    $forcast4 = $yweather->forecast->attributes()->day . " " . $yweather->forecast[4]->attributes()->date . " " . $yweather->forecast[4]->attributes()->low . " " . $yweather->forecast[4]->attributes()->high . " " . $yweather->forecast[4]->attributes()->text . " " . $yweather->forecast[4]->attributes()->code;
+
+
+    $desc = $sxml->channel->item->description;
+    $pattern = '/src="(.*?)"/i';
+    @preg_match($pattern, $desc, $m);
+    $weather['url'] = $m[1];
+
+    $geo = $sxml->channel->item->children($namespaces['geo']);
+    $geolat = $geo->lat;
+    $geolong = $geo->long;
+
+    $geopattern = 'http://us.rd.yahoo.com/dailynews/rss/weather/i';
+    $link1 = $sxml->channel->link;
+    @preg_match($geopattern, $link1, $p);
+    $det['link'] = $p[1];
+    $link = '<'.'a href="' . $link1 . '"> Details<'.'/a>';
+
+    $date = $yweather->condition->attributes()->date;
+    if (strlen($weather['url']) === 0) {
+        $weather_panel = '<a href="' . $link1 . '" ><img  src = "' . $text . '" alt="?"  height="42" width="42"/></a>';
+       
+    } else {
+        $weather_panel = '<a href="' . $link1 . '" ><img  src = "' . $weather['url'] . '" alt="' . $text . '" /></a>';
+    }
+    if ($weather_panel === "")
+        $weather_panel.="NA";
+    if (strlen($temperature) === 0)
+        $temperature.="NA";
+    if (strlen($city) === 0)
+        $city.="NA";
+    if (strlen($region) === 0)
+        $region.="NA";
+    if (strlen($country) === 0)
+        $country.="NA";
+    if (strlen($geolat) === 0)
+        $geolat.="NA";
+    if (strlen($geolong) === 0)
+        $geolong.="NA";
+    if (strlen($link) === 0)
+        $link.="NA";
+    
+    
+    //echo "<" . "?xml version=\"1.0\" encoding=\"UTF-8\"?" . ">";
+    $retxml.="<"."weather><feed>"."$url2"."</feed".">";
+    $retxml.="<"."link>".$text."</link".">";
+  
+    $retxml.="<"."location city=\"" . $city . "\" region=\"" . $region . "\" country= \"" . $country . "\""."></location>";
+    $retxml.="<"."units  temperature=\"" . $temperature .  "\""."></units"."".">";
+    $retxml.="<"."condition text=\"" . $yweather->condition->attributes()->text . "\" temp=\"" . $temperature .  "\""."></condition>";
+    $retxml.= "<"."img>" .$text ."<"."/img".">";
+   // $retxml.="<"."img " . "src = \"" . $text . " \" alt=\"NA\"  height=\"42\" width=\"42\" ".">".""."<"."/img".">";
+    $retxml.="<"."forecast0 day=\"" . $yweather->forecast[0]->attributes()->day ."\" date=\"".$yweather->forecast[0]->attributes()->date . "\" low=\"" . $yweather->forecast[0]->attributes()->low . "\" high= \"" . $yweather->forecast[0]->attributes()->high . "\" text=\"" . $yweather->forecast[0]->attributes()->text . "\""."></forecast0>";
+    $retxml.="<"."forecast1 day=\""  . $yweather->forecast[1]->attributes()->day ."\" date=\"". $yweather->forecast[1]->attributes()->date . "\" low=\"" . $yweather->forecast[1]->attributes()->low . "\" high= \"" . $yweather->forecast[1]->attributes()->high . "\" text=\"" . $yweather->forecast[1]->attributes()->text ."\""."></forecast1>";
+    $retxml.="<"."forecast2 day=\""  . $yweather->forecast[2]->attributes()->day ."\" date=\"". $yweather->forecast[2]->attributes()->date . "\" low=\"" . $yweather->forecast[2]->attributes()->low . "\" high= \"" . $yweather->forecast[2]->attributes()->high . "\" text=\"" . $yweather->forecast[2]->attributes()->text ."\""."></forecast2>";
+    $retxml.="<"."forecast3 day=\""  . $yweather->forecast[3]->attributes()->day ."\" date=\"". $yweather->forecast[3]->attributes()->date . "\" low=\"" . $yweather->forecast[3]->attributes()->low . "\" high= \""  . $yweather->forecast[3]->attributes()->high . "\" text=\"" . $yweather->forecast[3]->attributes()->text ."\""."></forecast3>";
+    $retxml.="<"."forecast4 day=\""  . $yweather->forecast[4]->attributes()->day ."\" date=\"". $yweather->forecast[4]->attributes()->date . "\" low=\"" . $yweather->forecast[4]->attributes()->low . "\" high= \"" . $yweather->forecast[4]->attributes()->high . "\" text=\"" . $yweather->forecast[4]->attributes()->text . "\""."></forecast4>";
+    $retxml.="<"."/weather".">";
+   // echo $retxml;
+    //----------------------------------------------------//
+    
+    $xml5 = new SimpleXMLElement ('<weather> <feed/><link/> <location/><units/> <conditions/><img/><forecast/> </weather>');
+   
+   $feed1= $xml5->feed;
+   $feed1[0]=$url2;
+   
+   $link1 = $xml5->link;
+   $link1[0]=$text;
+   
+   
+    $location1=$xml5->location;
+    
+    $location1[0]->addAttribute('city',"$city");
+    $location1[0]->addAttribute('region' , "$region" );
+    $location1[0]->addAttribute('country' , "$country" );
+    
+    $units1= $xml5->units;
+    $units1[0]->addAttribute('temperature',"$temperature");
+    
+    $condition1= $xml5->condition;
+    $condition1[0]->addAttribute('text',"$yweather->condition->attributes()->text");
+    $condition1[0]->addAttribute('temp',"$temperature");
+     
+    $img1=$xml5->img;
+    $img1[0]= $text;
+    
+    $forcast_elem = $xml5->forecast;
+    
+    $forcast_elem[0]->addAttribute('day',"$yweather->forecast[0]->attributes()->day");
+    
+    
+    echo 'php code';
+    print_r($xml5);
+    
+    
+    
+}
+?>
+
