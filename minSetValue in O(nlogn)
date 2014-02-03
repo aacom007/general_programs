@@ -1,0 +1,51 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+package minarray;
+
+/**
+ *
+ * @author akshay anand
+ */
+public class MinArray {
+
+    /**
+     * @param args the command line arguments
+     */
+    public static void main(String[] args) {
+        // TODO code application logic here
+        //Minsets to find the minimum in a set of n (here n=3)
+        //set of integer over which operation needs to be done
+        int nums[] ={1,2,3,4,5,67,5,8,8};
+        //set n=3;
+        int n =3;
+        //starting from index = 0
+        int i=0;
+        //calling recursive function minsets firsttime
+        minsets(0, nums, n);
+    }
+    
+    //calling recursive function.
+  public static void minsets(int a, int []arr, int n){
+      //assuming first integer in the set as min 
+      int min=arr[a];       
+      //if starting + length == end then return
+       if(a+n == arr.length)
+          return;
+       //continue with search in set in linear time.
+       else{
+           for(int i =a;i<=a+n;i++ ){           
+               //check if a[i]<= min replace the minimum 
+               if(arr[i]<=min)
+                min = arr[i];              
+           }
+           //before leaving print minimum
+           System.out.println(min+" ");
+           //call the function recursively
+           minsets(a+1,arr,n);
+         }
+        }
+}
